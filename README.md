@@ -84,9 +84,4 @@ HSTabSlideView是滑动轮播视图
     return 200.0f;
 }
 
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
 ```
