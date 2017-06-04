@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B0757411EDFC0F700432DD3 /* HSTabSlideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B0757401EDFC0F700432DD3 /* HSTabSlideView.m */; };
 		8B33B4CE1CCB9BD600062F7A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B33B4CD1CCB9BD600062F7A /* main.m */; };
 		8B33B4D11CCB9BD600062F7A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B33B4D01CCB9BD600062F7A /* AppDelegate.m */; };
 		8B33B4D41CCB9BD600062F7A /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B33B4D31CCB9BD600062F7A /* ViewController.m */; };
@@ -15,7 +16,6 @@
 		8B33B4DC1CCB9BD600062F7A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B33B4DA1CCB9BD600062F7A /* LaunchScreen.storyboard */; };
 		8B33B4E71CCB9BD600062F7A /* UIDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B33B4E61CCB9BD600062F7A /* UIDemoTests.m */; };
 		8B33B4F21CCB9BD600062F7A /* UIDemoUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B33B4F11CCB9BD600062F7A /* UIDemoUITests.m */; };
-		8B33B5521CCDE54400062F7A /* HSTabSlideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B33B5511CCDE54400062F7A /* HSTabSlideView.m */; };
 		8B33B5581CCE113400062F7A /* CustomCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B33B5571CCE113400062F7A /* CustomCell.m */; };
 /* End PBXBuildFile section */
 
@@ -37,6 +37,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8B07573F1EDFC0F700432DD3 /* HSTabSlideView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HSTabSlideView.h; sourceTree = "<group>"; };
+		8B0757401EDFC0F700432DD3 /* HSTabSlideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HSTabSlideView.m; sourceTree = "<group>"; };
+		8B0757421EDFC11C00432DD3 /* HSTabSlideConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HSTabSlideConfig.h; sourceTree = "<group>"; };
 		8B33B4C91CCB9BD600062F7A /* UIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B33B4CD1CCB9BD600062F7A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8B33B4CF1CCB9BD600062F7A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -53,8 +56,6 @@
 		8B33B4ED1CCB9BD600062F7A /* UIDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UIDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B33B4F11CCB9BD600062F7A /* UIDemoUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIDemoUITests.m; sourceTree = "<group>"; };
 		8B33B4F31CCB9BD600062F7A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8B33B5501CCDE54400062F7A /* HSTabSlideView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HSTabSlideView.h; sourceTree = "<group>"; };
-		8B33B5511CCDE54400062F7A /* HSTabSlideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HSTabSlideView.m; sourceTree = "<group>"; };
 		8B33B5561CCE113400062F7A /* CustomCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomCell.h; sourceTree = "<group>"; };
 		8B33B5571CCE113400062F7A /* CustomCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomCell.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -84,9 +85,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8B07573E1EDFC0F700432DD3 /* HSTabSlideView */ = {
+			isa = PBXGroup;
+			children = (
+				8B07573F1EDFC0F700432DD3 /* HSTabSlideView.h */,
+				8B0757401EDFC0F700432DD3 /* HSTabSlideView.m */,
+				8B0757421EDFC11C00432DD3 /* HSTabSlideConfig.h */,
+			);
+			path = HSTabSlideView;
+			sourceTree = "<group>";
+		};
 		8B33B4C01CCB9BD600062F7A = {
 			isa = PBXGroup;
 			children = (
+				8B07573E1EDFC0F700432DD3 /* HSTabSlideView */,
 				8B33B4CB1CCB9BD600062F7A /* UIDemo */,
 				8B33B4E51CCB9BD600062F7A /* UIDemoTests */,
 				8B33B4F01CCB9BD600062F7A /* UIDemoUITests */,
@@ -107,8 +119,6 @@
 		8B33B4CB1CCB9BD600062F7A /* UIDemo */ = {
 			isa = PBXGroup;
 			children = (
-				8B33B5501CCDE54400062F7A /* HSTabSlideView.h */,
-				8B33B5511CCDE54400062F7A /* HSTabSlideView.m */,
 				8B33B4CF1CCB9BD600062F7A /* AppDelegate.h */,
 				8B33B4D01CCB9BD600062F7A /* AppDelegate.m */,
 				8B33B4D21CCB9BD600062F7A /* ViewController.h */,
@@ -217,6 +227,7 @@
 				TargetAttributes = {
 					8B33B4C81CCB9BD600062F7A = {
 						CreatedOnToolsVersion = 7.3;
+						DevelopmentTeam = VWK5W847ZR;
 					};
 					8B33B4E11CCB9BD600062F7A = {
 						CreatedOnToolsVersion = 7.3;
@@ -284,7 +295,7 @@
 				8B33B4D11CCB9BD600062F7A /* AppDelegate.m in Sources */,
 				8B33B5581CCE113400062F7A /* CustomCell.m in Sources */,
 				8B33B4CE1CCB9BD600062F7A /* main.m in Sources */,
-				8B33B5521CCDE54400062F7A /* HSTabSlideView.m in Sources */,
+				8B0757411EDFC0F700432DD3 /* HSTabSlideView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,6 +438,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = VWK5W847ZR;
 				INFOPLIST_FILE = UIDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -439,6 +451,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = VWK5W847ZR;
 				INFOPLIST_FILE = UIDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

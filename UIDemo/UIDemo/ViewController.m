@@ -33,11 +33,11 @@
     
     self.view.backgroundColor = [UIColor whiteColor];
 
-    self.titleArray = @[@"图集", @"哈哈", @"啦啦", @"嘻嘻"];
+    self.titleArray = @[@"图集", @"哈哈"];
     
     [self demo10];
     
-    [self.slideView reloadData];
+//    [self.slideView reloadData];
     
     
 }
@@ -48,18 +48,18 @@
     
     self.navigationController.navigationBarHidden = YES;
     
-    self.slideView = [[HSTabSlideView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)) slideStyle:HSSlideStyleLine];
+    self.slideView = [[HSTabSlideView alloc] initWithFrame:CGRectMake(0, 20, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)) slideStyle:HSSlideStyleLineAdaptText];
     
     //设置是否可以循环
-    self.slideView.isCycle = NO;
+    self.slideView.isCycle = YES;
     
     [self.view addSubview:self.slideView];
     
     //设置代理
     self.slideView.delegate = self;
     
-    //设置重新加载数据
-    [self.slideView reloadData];
+//    //设置重新加载数据
+//    [self.slideView reloadData];
     
 }
 
@@ -76,7 +76,7 @@
 
     if (index == 0){
     
-        view.backgroundColor = [UIColor redColor];
+        view.backgroundColor = [UIColor orangeColor];
 
     }
     else if (index == 1){
@@ -101,7 +101,7 @@
 
 -(NSInteger)numberOfItemsInSlideView:(HSTabSlideView *)slideView
 {
-    return 4;
+    return self.titleArray.count;
 }
 
 

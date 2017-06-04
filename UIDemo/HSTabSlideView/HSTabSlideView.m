@@ -11,31 +11,23 @@
 
 #pragma mark - ====================HSTabItemView===========================
 
-#define MARGIN 15.0f
+static NSString *const HSTabItemCollectionCellID = @"HSTabItemCollectionCell";
 
-#define MAXCOUNT 6
+#define kTitleFont [UIFont systemFontOfSize:17.0f]
 
-@interface HSTabItemView ()
-
-
+@interface HSTabItemView ()<UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 
 /** 类型 */
 @property (nonatomic, assign) HSSlideStyle style;
 
 /** 滑动视图 */
-@property (nonatomic, strong) UIScrollView *scrollView;
+@property (nonatomic, strong) UICollectionView *collectionView;
 
-/** button的个数 */
-@property (nonatomic, strong) NSMutableArray *buttonArray;
+/** flowLayout */
+@property (nonatomic, strong) UICollectionViewFlowLayout *flowLayout;
 
 /** 滑动的线条 */
 @property (nonatomic, strong) UIView *moveLineView;
-
-/** 滑动的imageView */
-@property (nonatomic, strong) UIImageView *moveImageView;
-
-/** button的宽度 */
-@property (nonatomic, assign) CGFloat kWidthOfButton;
 
 /** 下面的小线条 */
 @property (nonatomic, strong) UIView *lineView;
@@ -46,19 +38,26 @@
 /** 移动线条的颜色 */
 @property (nonatomic, strong) UIColor *moveLineColor;
 
+/** 文字之间的间隔 */
+@property (nonatomic, assign) CGFloat margin;
+
+/** 头部文字的insets */
+@property (nonatomic, assign) UIEdgeInsets insets;
+
+/** 每一页的最大的显示个数 */
+@property (nonatomic, assign) NSInteger maxCount;
+
 @end
 
 @implementation HSTabItemView
 
--(instancetype)initWithFrame:(CGRect)frame slideStyle:(HSSlideStyle)style
-{
+-(instancetype)initWithFrame:(CGRect)frame slideStyle:(HSSlideStyle)style {
+    
     self = [super initWithFrame:frame];
     
     if (self) {
         
         self.style = style;
-        
-        self.UDIndex = 0;
         
         [self initValues];
         
@@ -76,7 +75,11 @@
     
     self.moveLineColor = [UIColor redColor];
     
-    self.buttonArray = [NSMutableArray arrayWithCapacity:0];
+    self.margin = 0.0f;
+    
+    self.insets = UIEdgeInsetsMake(0, 0, 0, 0);
+    
+    self.maxCount = 6;
     
     [self addSubview:self.lineView];
     
@@ -88,489 +91,260 @@
     
     //设置滑动视图frame
     
-    self.scrollView.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+    self.collectionView.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
     
     self.lineView.frame = CGRectMake(0, (CGRectGetHeight(self.frame) - 1.0f), CGRectGetWidth(self.frame), 1.0f);
-    
-    
-    if (self.dataArray.count){
-        
-        //获取数组元素个数
-        
-        NSInteger count = self.dataArray.count;
-        
-        //根据视图大小 和 标签个数 计算其占用宽度 (标签个数大于maxCount个 平均宽度按maxCount个计算)
-        
-        NSInteger deCount =  (count <= MAXCOUNT ? count : MAXCOUNT);
-        
-        self.kWidthOfButton = (self.frame.size.width - (deCount - 1) * MARGIN) / (deCount);
-        
-        //循环遍历button 设置其frame尺寸
-        
-        for (NSInteger index = 0; index < self.buttonArray.count; index ++) {
-            
-            UIButton *button = (UIButton *)self.buttonArray[index];
-            
-            [self buttonDefaultStyle:button];
-            
-            button.frame = CGRectMake((self.kWidthOfButton + MARGIN) * index, self.scrollView.frame.origin.y, self.kWidthOfButton, self.scrollView.frame.size.height);
-            
-            if (self.UDIndex == index){
-                
-                [self buttonClickStyle:button];
-            }
-        }
-        
-        //设置滑动视图内容大小
-        
-        self.scrollView.contentSize = CGSizeMake((self.kWidthOfButton + MARGIN) * count - MARGIN, self.scrollView.frame.size.height);
-        
-        //设置下划线视图frame
-        
-        self.moveLineView.frame = CGRectMake((self.kWidthOfButton + MARGIN) * self.UDIndex , self.scrollView.frame.size.height - 3, self.kWidthOfButton, 3);
-        
-        //设置阴影视图的frame
-        self.moveImageView.frame = CGRectMake((self.kWidthOfButton + MARGIN) * self.UDIndex , self.scrollView.frame.size.height - 3, self.kWidthOfButton, self.scrollView.frame.size.height);
-    }
 }
 
 
-#pragma mark - 设置dataArray
+#pragma mark - 设置
 
 -(void)setDataArray:(NSArray *)dataArray{
     
     if (_dataArray != dataArray) {
         
         _dataArray = dataArray;
-        
     }
     
-    //清除所有视图
+    //重新加载数据
     
-    [self removeAllViews];
-    
-    //计算数据 加载button
-    
-    [self loadButton];
-    
+    [self.collectionView reloadData];
 }
 
-
-#pragma mark - 删除所有视图
-
-- (void)removeAllViews{
+- (void)setMoveLineColor:(UIColor *)moveLineColor {
     
-    NSArray *subViews = [self.scrollView subviews];
+    _moveLineColor = moveLineColor;
     
-    for (UIView *subView in subViews) {
-        
-        [subView removeFromSuperview];
-        
-    }
-    
-    [self.buttonArray removeAllObjects];
+    self.moveLineView.backgroundColor = _moveLineColor;
 }
 
-#pragma mark - 加载button
-
--(void)loadButton{
+- (void)setUDIndex:(NSInteger)UDIndex {
     
-    //获取数组元素个数
+    HSTabItemCollectionCell *preCell = (HSTabItemCollectionCell *)[self.collectionView cellForItemAtIndexPath:[NSIndexPath indexPathForRow:_UDIndex inSection:0]];
     
-    NSInteger count = self.dataArray.count;
+    preCell.isSelected = NO;
     
-    if (count > 0) {
-        
-        //根据视图大小 和 标签个数 计算其占用宽度 (标签个数大于6个 平均宽度按6个计算)
-        
-        NSInteger deCount =  (count <= MAXCOUNT ? count : MAXCOUNT);
-        
-        self.kWidthOfButton = (self.frame.size.width - (deCount - 1) * MARGIN) / (deCount);
-        
-        //循环初始化button
-        
-        for (int i = 0; i < count; i++) {
-            
-            //初始化BUTTON
-            
-            UIButton *button = [self createButtonWithFrame:CGRectMake((self.kWidthOfButton + MARGIN) * i, self.scrollView.frame.origin.y, self.kWidthOfButton, self.scrollView.frame.size.height) title:self.dataArray[i]];
-            
-            button.tag = 2000 + i;
-            
-        }
-        
-        //设置滑动视图内容大小
-        
-        self.scrollView.contentSize = CGSizeMake((self.kWidthOfButton + MARGIN) * count , CGRectGetHeight(self.frame));
-        
-        //设置下划线视图frame
-        
-        self.moveLineView.frame = CGRectMake((self.kWidthOfButton + MARGIN) * self.UDIndex , CGRectGetHeight(self.frame) - 3 , self.kWidthOfButton, 3);
-        
-    }
+    _UDIndex = UDIndex;
     
-}
-
-
-#pragma mark - 创建button
-
-- (UIButton *)createButtonWithFrame:(CGRect)frame title:(NSString *)title
-{
+    HSTabItemCollectionCell *nowCell = (HSTabItemCollectionCell *)[self.collectionView cellForItemAtIndexPath:[NSIndexPath indexPathForRow:_UDIndex inSection:0]];
     
-    //初始化BUTTON
+    nowCell.isSelected = YES;
     
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    
-    button.frame = frame;
-    
-    [button setTitle:title forState:UIControlStateNormal];
-    
-    CGFloat fontSize = 17.0f;
-    
-    button.titleLabel.font = [UIFont systemFontOfSize:fontSize];
-    
-    button.backgroundColor = [UIColor clearColor];
-    
-    [button addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
-    
-    //设置样式
-    
-    [self buttonDefaultStyle:button];
-    
-    //设置下划线与button的层级
-    
-    [self.scrollView insertSubview:button belowSubview:self.moveLineView];
-    
-    //添加创建好的button到button数组
-    
-    [self.buttonArray addObject:button];
-    
-    return button;
-    
-    
-}
-
-#pragma mark - button默认样式
-
-- (void)buttonDefaultStyle:(UIButton *)button{
-    
-    //设置选中button的字体颜色
-    
-    [button setTitleColor:self.normalItemColor forState:UIControlStateNormal];
-    
-    //判断标签导航栏样式
-    
-    switch (self.style) {
-            
-        case HSSlideStyleZoom:
-            
-            //隐藏下划线视图
-            
-            self.moveLineView.hidden = YES;
-            
-            //隐藏阴影视图
-            
-            self.moveImageView.hidden = YES;
-            
-            //设置button字体缩放
-            
-            [self buttonZoomWithButton:button zoomScale:1];
-            
-            break;
-            
-        case HSSlideStyleLine:
-            
-            //显示下划线视图
-            
-            self.moveLineView.hidden = NO;
-            
-            //隐藏阴影视图
-            
-            self.moveImageView.hidden = YES;
-            
-            //设置button字体缩放
-            
-            [self buttonZoomWithButton:button zoomScale:1];
-            
-            //下划线移动
-            
-            [self moveLineViewMove:button.center.x];
-            
-            break;
-            
-        case HSSlideStyleShadow:
-            
-            //显示下划线视图
-            
-            self.moveLineView.hidden = YES;
-            
-            //隐藏阴影视图
-            
-            self.moveImageView.hidden = NO;
-            
-            //设置button字体缩放
-            
-            [self buttonZoomWithButton:button zoomScale:1];
-            
-            //下划线移动
-            
-            [self moveImageViewMove:button.frame.origin.x];
-            
-            break;
-            
-        default:
-            break;
-    }
-    
-}
-
-#pragma mark - button点击样式
-
-- (void)buttonClickStyle:(UIButton *)button{
-    
-    //设置选中button的字体颜色
-    
-    [button setTitleColor:self.selectItemColor forState:UIControlStateNormal];
-    
-    
-    //如果 当前显示的最后一个tab文字超出右边界
-    if (button.frame.origin.x - self.scrollView.contentOffset.x > self.bounds.size.width - (self.kWidthOfButton + button.bounds.size.width)) {
-        
-        //向左滚动视图，显示完整tab文字
-        if (button.frame.origin.x + button.frame.size.width + self.kWidthOfButton >= self.scrollView.contentSize.width){
-            
-            [self.scrollView setContentOffset:CGPointMake((self.scrollView.contentSize.width - self.scrollView.bounds.size.width), 0) animated:YES];
-        }
-        else {
-            
-            [self.scrollView setContentOffset:CGPointMake(button.frame.origin.x - (self.scrollView.bounds.size.width- (self.kWidthOfButton + button.bounds.size.width)), 0)  animated:YES];
-        }
-    }
-    
-    //如果 （tab的文字坐标 - 当前滚动视图左边界所在整个视图的x坐标） < 按钮的隔间 ，代表tab文字已超出边界
-    if (button.frame.origin.x - self.scrollView.contentOffset.x < self.kWidthOfButton) {
-        
-        //向右滚动视图（tab文字的x坐标 - 按钮间隔 = 新的滚动视图左边界在整个视图的x坐标），使文字显示完整
-        if (button.frame.origin.x - self.kWidthOfButton <= 0){
-            
-            [self.scrollView setContentOffset:CGPointMake(0, 0) animated:YES];
-        }
-        else {
-            
-            [self.scrollView setContentOffset:CGPointMake(button.frame.origin.x - self.kWidthOfButton, 0)  animated:YES];
-        }
-    }
-    
-    //判断标签导航栏样式
-    
-    switch (self.style) {
-            
-        case HSSlideStyleZoom:
-            
-            //隐藏下划线视图
-            
-            self.moveLineView.hidden = YES;
-            
-            //隐藏阴影视图
-            
-            self.moveImageView.hidden = YES;
-            
-            //设置button字体缩放
-            
-            [self buttonZoomWithButton:button zoomScale:1.2];
-            
-            break;
-            
-        case HSSlideStyleLine:
-            
-            //显示下划线视图
-            
-            self.moveLineView.hidden = NO;
-            
-            //隐藏阴影视图
-            
-            self.moveImageView.hidden = YES;
-            
-            //设置button字体缩放
-            
-            [self buttonZoomWithButton:button zoomScale:1.2];
-            
-            //下划线移动
-            
-            [self moveLineViewMove:button.center.x];
-            
-            break;
-            
-        case HSSlideStyleShadow:
-            
-            //显示下划线视图
-            
-            self.moveLineView.hidden = YES;
-            
-            //隐藏阴影视图
-            
-            self.moveImageView.hidden = NO;
-            
-            //设置button字体缩放
-            
-            [self buttonZoomWithButton:button zoomScale:1.2];
-            
-            //下划线移动
-            
-            [self moveImageViewMove:button.frame.origin.x];
-            
-            break;
-            
-        default:
-            break;
-    }
-}
-
-#pragma mark - button缩放
-
-- (void)buttonZoomWithButton:(UIButton*)button zoomScale:(CGFloat)scale
-{
-    
-    [UIView animateWithDuration:0.4f animations:^{
-        
-        button.transform = CGAffineTransformMakeScale(scale, scale);
-        
-    }];
-}
-
-#pragma mark - button点击事件
-
-- (void)buttonAction:(UIButton *)sender
-{
-    if (self.UDIndex < self.buttonArray.count){
-        
-        //将之前的button转换样式
-        UIButton *preButton = [self.buttonArray objectAtIndex:self.UDIndex];
-        
-        [self buttonDefaultStyle:preButton];
-        
-        //现在的button，记录UDIndex
-        self.UDIndex = sender.tag - 2000;
-        
-        //添加点击样式
-        
-        [self buttonClickStyle:sender];
-        
-        
-        if (self.selectBlock){
-            
-            self.selectBlock(self.UDIndex);
-        }
-        
-        if(self.itemClickBlock){
-            
-            self.itemClickBlock(self.UDIndex);
-        }
-        
-    }
+    [self cellClickStyle];
 }
 
 #pragma mark - 跳转到指定下标的位置
 
--(void)setSelectIndex:(NSInteger)selectIndex
-{
-    if (selectIndex < self.buttonArray.count){
-        
-        //将之前的button转换样式
-        UIButton *preButton = [self.buttonArray objectAtIndex:self.UDIndex];
-        
-        [self buttonDefaultStyle:preButton];
+- (void)configSelectIndex:(NSInteger)selectIndex {
+    
+    if (selectIndex < self.dataArray.count){
         
         //记录现在的UDIndex
         self.UDIndex = selectIndex;
-        
-        //获取对应下标得button
-        
-        UIButton *curButton = [self.buttonArray objectAtIndex:self.UDIndex];
-        
-        //清除当前的样式
-        [self buttonDefaultStyle:curButton];
-        
-        //修改样式
-        [self buttonClickStyle:curButton];
         
         if (self.selectBlock){
             
             self.selectBlock(self.UDIndex);
         }
-        
     }
 }
 
-
-#pragma mark - 阴影视图移动
-
-- (void)moveImageViewMove:(CGFloat)x{
+- (void)configMoveLineViewWithScale:(CGFloat)scale {
     
-    //添加动画
+    UICollectionViewLayoutAttributes *attributes = [self.collectionView layoutAttributesForItemAtIndexPath:[NSIndexPath indexPathForRow:_UDIndex inSection:0]];
     
-    [UIView beginAnimations:@"moveImageViewMove" context:nil];
+    CGFloat x = floor(scale) * (attributes.frame.size.width + self.margin) + self.insets.left + attributes.frame.size.width / 2.0f + (scale - floor(scale)) * (attributes.frame.size.width + self.margin);
     
-    //设置动画时长
-    
-    [UIView setAnimationDuration:0.2f];
-    
-    //设置下划线视图frame
-    
-    self.moveImageView.frame = CGRectMake(x , CGRectGetHeight(self.scrollView.frame) - 3 , CGRectGetWidth(self.moveImageView.frame) , CGRectGetHeight(self.moveImageView.frame));
-    
-    //提交动画
-    
-    [UIView commitAnimations];
-    
+    self.moveLineView.center = CGPointMake(x, attributes.frame.size.height - 3.0f/2.0f);
 }
 
-#pragma mark - 下划线视图移动
 
-- (void)moveLineViewMove:(CGFloat)x{
+#pragma mark - Cell点击样式
+
+- (void)cellClickStyle{
     
-    //添加动画
+    //判断标签导航栏样式
     
-    [UIView beginAnimations:@"moveLineViewMove" context:nil];
-    
-    //设置动画时长
-    
-    [UIView setAnimationDuration:0.2f];
-    
-    //设置下划线视图frame
-    
-    self.moveLineView.center = CGPointMake(x, CGRectGetHeight(self.scrollView.frame) - 3 / 2);
-    
-    //提交动画
-    
-    [UIView commitAnimations];
-    
+    switch (self.style) {
+            
+        case HSSlideStyleZoom: {
+            
+            //隐藏下划线视图
+            
+            self.moveLineView.hidden = YES;
+        }
+            break;
+            
+        case HSSlideStyleLine: {
+            
+            //显示下划线视图
+            
+            self.moveLineView.hidden = NO;
+            
+            //下划线移动
+            
+            UICollectionViewLayoutAttributes *attributes = [self.collectionView layoutAttributesForItemAtIndexPath:[NSIndexPath indexPathForRow:_UDIndex inSection:0]];
+            
+            [UIView animateWithDuration:0.2f animations:^{
+                
+                self.moveLineView.frame = CGRectMake(attributes.frame.origin.x, attributes.frame.size.height - 3.0f, attributes.frame.size.width, 3.0f);
+            }];
+        }
+            break;
+            
+        case HSSlideStyleLineAdaptText: {
+            
+            //显示下划线视图
+            
+            self.moveLineView.hidden = NO;
+            
+            CGSize textSize = [self.dataArray[_UDIndex] boundingRectWithSize:CGSizeMake(100.0f, 37.0f) options:NSStringDrawingUsesFontLeading attributes:@{NSFontAttributeName: kTitleFont} context:nil].size;
+            
+            //下划线移动
+            
+            UICollectionViewLayoutAttributes *attributes = [self.collectionView layoutAttributesForItemAtIndexPath:[NSIndexPath indexPathForRow:_UDIndex inSection:0]];
+            
+            [UIView animateWithDuration:0.2f animations:^{
+                
+                self.moveLineView.frame = CGRectMake(attributes.center.x - (textSize.width + 3.0f) / 2.0f, attributes.frame.size.height - 3.0f, (textSize.width + 3.0f), 3.0f);
+            }];
+        }
+            break;
+            
+        default:
+            break;
+    }
 }
+
+#pragma mark - UICollectionView Delegate
+
+-(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    
+    HSTabItemCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:HSTabItemCollectionCellID forIndexPath:indexPath];
+    
+    NSString *title = self.dataArray[indexPath.row];
+    
+    cell.title = title;
+    
+    cell.style = self.style;
+    
+    cell.normalItemColor = self.normalItemColor;
+    
+    cell.selectItemColor = self.selectItemColor;
+    
+    cell.isSelected = (self.UDIndex == indexPath.row) ? YES : NO;
+    
+    return cell;
+}
+
+-(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    
+    return self.dataArray.count;
+}
+
+-(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
+    
+    return 1;
+}
+
+-(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if(self.itemClickBlock){
+        
+        self.itemClickBlock(indexPath.row);
+    }
+    
+    [self configSelectIndex:indexPath.row];
+}
+
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section {
+    
+    return 0.0f;
+}
+
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section {
+    
+    return self.margin;
+}
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (self.margin <= 0.0f){
+        
+        CGFloat width = (CGRectGetWidth(self.frame) - self.insets.left - self.insets.right) / self.dataArray.count;
+        
+        return CGSizeMake(width, 37.0f);
+    }
+    
+    return CGSizeMake(60.0f, 37.0f);
+}
+
+- (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
+    
+    return self.insets;
+}
+
 
 
 #pragma mark - Lazy Loading
 
--(UIScrollView *)scrollView
+-(UICollectionViewFlowLayout *)flowLayout
 {
-    if (_scrollView == nil){
+    if (_flowLayout == nil){
         
-        _scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame))];
+        // 创建flowLayout
         
-        _scrollView.backgroundColor = [UIColor clearColor];
+        _flowLayout = [[UICollectionViewFlowLayout alloc] init];
         
-        _scrollView.showsVerticalScrollIndicator = NO;
+        //设置Cell的大小
         
-        _scrollView.showsHorizontalScrollIndicator = NO;
+        _flowLayout.itemSize = CGSizeMake(60.0f, 37.0f);
         
-        _scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+        //设置单元格的左右最小间距
         
-        _scrollView.pagingEnabled = NO;
+        _flowLayout.minimumInteritemSpacing = 0.0f;
         
-        [self addSubview:_scrollView];
+        //设置单元格的上下最小间距
+        
+        _flowLayout.minimumLineSpacing = 0.0f;
+        
+        //设置滑动方向
+        
+        _flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+        
+        //设置边界
+        
+        _flowLayout.sectionInset = UIEdgeInsetsMake(0, 10.0f, 0, 10.0f);
+        
     }
     
-    return _scrollView;
+    return _flowLayout;
 }
+
+- (UICollectionView *)collectionView {
+    
+    if (_collectionView == nil){
+        
+        _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)) collectionViewLayout:self.flowLayout];
+        
+        _collectionView.backgroundColor = [UIColor clearColor];
+        
+        _collectionView.showsVerticalScrollIndicator = NO;
+        
+        _collectionView.showsHorizontalScrollIndicator = NO;
+        
+        _collectionView.delegate = self;
+        
+        _collectionView.dataSource = self;
+        
+        [_collectionView registerClass:[HSTabItemCollectionCell class] forCellWithReuseIdentifier:HSTabItemCollectionCellID];
+        
+        [self addSubview:_collectionView];
+    }
+    
+    return _collectionView;
+}
+
 
 -(UIView *)lineView
 {
@@ -595,7 +369,7 @@
         
         _moveLineView.backgroundColor = self.moveLineColor;
         
-        [self.scrollView addSubview:_moveLineView];
+        [self.collectionView addSubview:_moveLineView];
         
     }
     
@@ -603,21 +377,163 @@
     
 }
 
--(UIImageView *)moveImageView
-{
-    if (_moveImageView == nil){
-        
-        _moveImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 0, CGRectGetHeight(self.frame))];
-        
-        [self.scrollView addSubview:_moveImageView];
-    }
-    
-    return _moveImageView;
-}
+@end
+
+#pragma mark - ====================HSTabItemCollectionCell===========================
+
+@interface HSTabItemCollectionCell ()
+
+/** 点击的button */
+@property (nonatomic, strong) UIButton *button;
 
 @end
 
+@implementation HSTabItemCollectionCell
 
+- (instancetype)initWithFrame:(CGRect)frame {
+    
+    self = [super initWithFrame:frame];
+    if (self) {
+        
+        // 初始化数据
+        [self initData];
+        
+        // 初始化子视图
+        [self initSubview];
+        
+        // 设置自动布局
+        [self configAutoLayout];
+        
+        // 设置主题模式
+        [self configTheme];
+        
+    }
+    return self;
+}
+
+- (void)layoutSubviews {
+    
+    [super layoutSubviews];
+    
+    self.button.frame = CGRectMake(0, 0, CGRectGetWidth(self.contentView.frame), CGRectGetHeight(self.contentView.frame));
+}
+
+- (void)initData {
+    
+    
+}
+
+- (void)initSubview {
+    
+    //初始化BUTTON
+    
+    self.button = [UIButton buttonWithType:UIButtonTypeCustom];
+    
+    self.button.titleLabel.font = kTitleFont;
+    
+    self.button.backgroundColor = [UIColor clearColor];
+    
+    self.button.userInteractionEnabled = NO;
+    
+    [self.contentView addSubview:self.button];
+}
+
+- (void)configAutoLayout {
+    
+    
+}
+
+- (void)configTheme {
+    
+    
+}
+
+#pragma mark - Method
+
+- (void)setTitle:(NSString *)title {
+    
+    if (_title != title){
+        
+        _title = title;
+        
+        [self.button setTitle:title forState:UIControlStateNormal];
+    }
+}
+
+- (void)setIsSelected:(BOOL)isSelected {
+    
+    if (_isSelected != isSelected){
+        
+        _isSelected = isSelected;
+        
+        if (isSelected){
+            
+            [self buttonClickStyle:self.button];
+            
+        } else {
+            
+            [self buttonDefaultStyle:self.button];
+        }
+    }
+}
+
+#pragma mark - button默认样式
+
+- (void)buttonDefaultStyle:(UIButton *)button{
+    
+    //设置选中button的字体颜色
+    
+    [button setTitleColor:self.normalItemColor forState:UIControlStateNormal];
+    
+    [self buttonZoomWithButton:button zoomScale:1];
+}
+
+#pragma mark - button点击样式
+
+- (void)buttonClickStyle:(UIButton *)button{
+    
+    //设置选中button的字体颜色
+    
+    [button setTitleColor:self.selectItemColor forState:UIControlStateNormal];
+    
+    //判断标签导航栏样式
+    
+    switch (self.style) {
+            
+        case HSSlideStyleZoom:
+            
+            //设置button字体缩放
+            
+            [self buttonZoomWithButton:button zoomScale:1.2];
+            
+            break;
+            
+        case HSSlideStyleLine:
+            
+            break;
+            
+        case HSSlideStyleLineAdaptText:
+            
+            break;
+            
+        default:
+            break;
+    }
+}
+
+#pragma mark - button缩放
+
+- (void)buttonZoomWithButton:(UIButton*)button zoomScale:(CGFloat)scale
+{
+    
+    [UIView animateWithDuration:0.4f animations:^{
+        
+        button.transform = CGAffineTransformMakeScale(scale, scale);
+        
+    }];
+}
+
+@end
 
 #pragma mark - ====================HSTabContainView===========================
 
@@ -663,8 +579,6 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
 
 @property (nonatomic, assign) NSInteger currenIndex;
 
-
-
 @end
 
 @implementation HSTabSlideView
@@ -677,8 +591,6 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
     if (self) {
         
         self.backgroundColor = BackColor;
-        
-        self.titleArray = [NSMutableArray arrayWithCapacity:0];
         
         //循环
         self.isCycle = YES;
@@ -693,13 +605,16 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
     return self;
 }
 
--(void)reloadData
-{
-    [_tabItemView removeFromSuperview];
+- (void)setDelegate:(id<HSTabSlideViewDelegate>)delegate {
     
-    _tabItemView = nil;
+    _delegate = delegate;
     
-    [self.titleArray removeAllObjects];
+    [self configTabItemViewTitle];
+}
+
+-(void)reloadData {
+    
+    [self configTabItemViewTitle];
     
     for (UIView *subView in _currentContainView.subviews) {
         
@@ -744,8 +659,7 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
         _currenIndex = currenIndex;
     }
     
-    _tabItemView.selectIndex = currenIndex;
-    
+    [self.tabItemView configSelectIndex:_currenIndex];
 }
 
 -(void)changeContainViewFrameWithTabItemViewSelectIndex:(NSInteger)index
@@ -772,7 +686,7 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
     
     
     if (index == 0 && self.isCycle == NO){
-    
+        
         //不循环且是第一个item时候
         self.scrollView.contentSize = CGSizeMake(2 * CGRectGetWidth(_scrollView.frame), CGRectGetHeight(_scrollView.frame));
         
@@ -781,10 +695,9 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
         [self addViewOfContainView:self.currentContainView index:nextIndex];
         
         self.scrollView.contentOffset = CGPointMake(0, 0);
-
     }
     else if (index == self.numOfItem - 1 && self.isCycle == NO){
-    
+        
         //不循环且是最后一个item的时候
         self.scrollView.contentSize = CGSizeMake(2 * CGRectGetWidth(_scrollView.frame), CGRectGetHeight(_scrollView.frame));
         
@@ -795,7 +708,7 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
         self.scrollView.contentOffset = CGPointMake(CGRectGetWidth(self.scrollView.frame), 0);
     }
     else {
-    
+        
         //其他情况
         self.scrollView.contentSize = CGSizeMake(3 * CGRectGetWidth(_scrollView.frame), CGRectGetHeight(_scrollView.frame));
         
@@ -808,9 +721,7 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
         //获取选中的下标 并设置内容视图相应的页面显示
         
         self.scrollView.contentOffset = CGPointMake(CGRectGetWidth(self.scrollView.frame), 0);
-
     }
-
 }
 
 -(void)addViewOfContainView:(HSTabContainView *)containView index:(NSInteger)index
@@ -901,11 +812,6 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
 
 #pragma mark - 下一张
 
-- (void)playNextContainView
-{
-    self.currenIndex = [self getNextIndex:self.currenIndex];
-}
-
 -(NSInteger)getNextIndex:(NSInteger)index
 {
     if (index == self.numOfItem - 1){
@@ -923,6 +829,11 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
     
     return index + 1;
     
+}
+
+- (void)playNextContainView
+{
+    self.currenIndex = [self getNextIndex:self.currenIndex];
 }
 
 #pragma mark - 滑动视图滑动结束处理
@@ -944,12 +855,9 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
         case 1:
             
             //当不循环的时候，且是第一个item的时候，播放下一个item
-            if (self.currenIndex == 0){
-            
+            if (self.currenIndex == 0 && self.isCycle == NO){
+                
                 [self playNextContainView];
-            }
-            else if (self.currenIndex == self.numOfItem - 1){
-            
             }
             
             break;
@@ -963,15 +871,6 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
         default:
             break;
     }
-    
-    
-//    //还原滑动视图偏移量
-//    
-//    CGPoint point = CGPointMake(CGRectGetWidth(self.scrollView.frame), 0);
-//    
-//    [self.scrollView setContentOffset:point animated:NO];
-    
-    
 }
 
 
@@ -979,6 +878,49 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
 #pragma mark - UIScrollViewDelegate
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    
+    CGFloat scale = 0.0f;
+    
+    if (self.isCycle == NO){
+    
+        if (self.currenIndex == 0){
+            
+            scale = (scrollView.contentOffset.x / scrollView.frame.size.width) + _currenIndex;
+            
+        } else if (self.currenIndex == self.numOfItem - 1){
+            
+            scale = (scrollView.contentOffset.x / scrollView.frame.size.width) + _currenIndex - 1;
+            
+        } else {
+            
+            CGFloat offset = (scrollView.contentOffset.x / scrollView.frame.size.width);
+            
+            if (offset >= 1){
+                
+                scale = offset + _currenIndex - 1;
+                
+            } else {
+                
+                scale = offset + _currenIndex - 1;
+            }
+        }
+        
+    } else {
+    
+        CGFloat offset = (scrollView.contentOffset.x / scrollView.frame.size.width);
+
+        if (offset >= 1){
+            
+            scale = offset + _currenIndex - 1;
+            
+        } else {
+            
+            scale = offset + _currenIndex - 1;
+        }
+    }
+    
+    [self.tabItemView configMoveLineViewWithScale:scale];
+    
     
 }
 
@@ -1044,6 +986,54 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
     
 }
 
+/** 配置标题 */
+- (void)configTabItemViewTitle {
+    
+    if (self.titleArray) {
+        
+        [self.titleArray removeAllObjects];
+    } else {
+        
+        self.titleArray = [NSMutableArray arrayWithCapacity:0];
+    }
+    
+    if (self.viewsArray) {
+        
+        [self.viewsArray removeAllObjects];
+    } else {
+        
+        self.viewsArray = [NSMutableArray arrayWithCapacity:0];
+    }
+    
+    //获取标签数据源数组
+    
+    for (NSInteger i = 0 ; i < self.numOfItem ; i ++) {
+        
+        //先判断代理是否存在 并且 是否实现了方法
+        
+        if (self.delegate && [self.delegate respondsToSelector:@selector(tabSlideView:titleForItemAtIndex:)]) {
+            
+            //获取标签标题
+            
+            NSString *titleStr = [self.delegate tabSlideView:self titleForItemAtIndex:i];
+            
+            //添加到标签数据源数组
+            
+            [self.titleArray addObject:titleStr];
+            
+        }
+        
+        //为视图数据源数组添加占位数据
+        
+        [self.viewsArray addObject:KeepPlaceOfOwer];
+        
+    }
+    
+    self.tabItemView.dataArray = self.titleArray;
+    
+    self.currenIndex = 0;
+}
+
 
 #pragma mark - Lazy Loading
 
@@ -1075,43 +1065,13 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
     return _scrollView;
 }
 
--(HSTabItemView *)tabItemView
-{
+-(HSTabItemView *)tabItemView {
+    
     if (_tabItemView == nil){
         
         _tabItemView = [[HSTabItemView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), HeightOfTabItem) slideStyle:self.style];
         
         [self addSubview:_tabItemView];
-        
-        
-        self.viewsArray = [NSMutableArray arrayWithCapacity:0];
-        
-        //获取标签数据源数组
-        
-        for (NSInteger i = 0 ; i < self.numOfItem ; i ++) {
-            
-            //先判断代理是否存在 并且 是否实现了方法
-            
-            if (self.delegate && [self.delegate respondsToSelector:@selector(tabSlideView:titleForItemAtIndex:)]) {
-                
-                //获取标签标题
-                
-                NSString *titleStr = [self.delegate tabSlideView:self titleForItemAtIndex:i];
-                
-                //添加到标签数据源数组
-                
-                [self.titleArray addObject:titleStr];
-                
-            }
-            
-            //为视图数据源数组添加占位数据
-            
-            [self.viewsArray addObject:KeepPlaceOfOwer];
-            
-        }
-        
-        _tabItemView.dataArray = self.titleArray;
-        
         
         //标签导航栏视图回调block实现
         
@@ -1147,9 +1107,6 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
                 
             }
         };
-        
-        _tabItemView.selectIndex = 0;
-        
     }
     
     return _tabItemView;
@@ -1206,6 +1163,18 @@ static NSString *KeepPlaceOfOwer = @"KeepPlaceOfOwer";
     }
     
     return _nextContainView;
+}
+
+- (BOOL)isCycle {
+    
+    if (self.titleArray.count <= 2){
+        
+        return NO;
+        
+    } else {
+        
+        return _isCycle;
+    }
 }
 
 @end

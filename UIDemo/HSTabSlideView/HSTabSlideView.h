@@ -11,11 +11,12 @@
 
 typedef NS_ENUM(NSInteger, HSSlideStyle) {
     
-    HSSlideStyleZoom,          // 点击放大
+    HSSlideStyleZoom,        // 点击放大
     
     HSSlideStyleLine,        // 底部下划线
     
-    HSSlideStyleShadow,     // 底部阴影图片
+    HSSlideStyleLineAdaptText,   // 底部下划线适应文字宽度
+
 };
 
 typedef void(^SelectBlock)(NSInteger);
@@ -34,9 +35,6 @@ typedef void(^ItemClickBlock)(NSInteger);
 /** 数据源数组 */
 @property (nonatomic, strong) NSArray *dataArray;
 
-/** 选择的index */
-@property (nonatomic, assign) NSInteger selectIndex;
-
 /** 选择的block */
 @property (nonatomic, copy) SelectBlock selectBlock;
 
@@ -45,6 +43,28 @@ typedef void(^ItemClickBlock)(NSInteger);
 
 /** 初始化 */
 -(instancetype)initWithFrame:(CGRect)frame slideStyle:(HSSlideStyle)style;
+
+/** 设置选中的index */
+- (void)configSelectIndex:(NSInteger)index;
+
+@end
+
+@interface HSTabItemCollectionCell : UICollectionViewCell
+
+/** 标题 */
+@property (nonatomic, copy) NSString *title;
+
+/** 类型 */
+@property (nonatomic, assign) HSSlideStyle style;
+
+/** 是否选中 */
+@property (nonatomic, assign) BOOL isSelected;
+
+/** 选择的item的文字的颜色 */
+@property (nonatomic, strong) UIColor *selectItemColor;
+
+/** 正常的item的文字的颜色 */
+@property (nonatomic, strong) UIColor *normalItemColor;
 
 @end
 
@@ -87,6 +107,15 @@ typedef void(^ItemClickBlock)(NSInteger);
 
 /** 是否循环播放，默认YES */
 @property (nonatomic, assign) BOOL isCycle;
+
+/** 文字之间的间隔 */
+@property (nonatomic, assign) CGFloat margin;
+
+/** 头部文字的insets */
+@property (nonatomic, assign) UIEdgeInsets insets;
+
+/** 每一页的最大的显示个数 */
+@property (nonatomic, assign) NSInteger maxCount;
 
 -(instancetype)initWithFrame:(CGRect)frame slideStyle:(HSSlideStyle)slideStyle;
 
