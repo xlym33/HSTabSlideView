@@ -39,7 +39,6 @@
     
 //    [self.slideView reloadData];
     
-    
 }
 
 
@@ -58,8 +57,11 @@
     //设置代理
     self.slideView.delegate = self;
     
+    
+    self.titleArray = @[@"图集", @"哈哈", @"嘻嘻", @"啦啦", @"发发", @"哦哦", @"嗯嗯", @"ddd"];
+    
 //    //设置重新加载数据
-//    [self.slideView reloadData];
+    [self.slideView reloadData];
     
 }
 

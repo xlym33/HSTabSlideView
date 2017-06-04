@@ -130,6 +130,8 @@ static NSString *const HSTabItemCollectionCellID = @"HSTabItemCollectionCell";
     
     nowCell.isSelected = YES;
     
+    [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:UDIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
+    
     [self cellClickStyle];
 }
 
