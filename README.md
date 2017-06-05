@@ -11,15 +11,27 @@ HSTabSlideView是滑动轮播视图
     
     self.navigationController.navigationBarHidden = YES;
     
-    self.slideView = [[HSTabSlideView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)) slideStyle:HSSlideStyleLine];
+    self.slideView = [[HSTabSlideView alloc] initWithFrame:CGRectMake(0, 20, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)) slideStyle:HSSlideStyleLineAdaptText];
     
     //设置是否可以循环
     self.slideView.isCycle = NO;
     
-    [self.view addSubview:self.slideView];
+    //设置屏幕最大的显示个数
+    self.slideView.maxCount = 4;
     
     //设置代理
     self.slideView.delegate = self;
+    
+    //设置上下左右的间距
+    self.slideView.insets = UIEdgeInsetsMake(0.0f, 5.0f, 0.0f, 5.0f);
+    
+    //设置每个item的间隔
+    self.slideView.margin = 20.0f;
+    
+    [self.view addSubview:self.slideView];
+    
+    
+    self.titleArray = @[@"图集", @"哈哈", @"嘻嘻", @"啦啦", @"发发", @"哦哦", @"嗯嗯", @"ddd"];
     
     //设置重新加载数据
     [self.slideView reloadData];
@@ -30,41 +42,18 @@ HSTabSlideView是滑动轮播视图
 
 -(UIView *)tabSlideView:(HSTabSlideView *)slideView viewForItemAtIndex:(NSInteger)index
 {
-    CustomCell *cell = [[CustomCell alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
-    cell.backgroundColor = [UIColor blueColor];
+        CustomCell *cell = [[CustomCell alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
     
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
+    cell.backgroundColor = [UIColor colorWithRed:rand() % 256 / 255.0 green:rand() % 256 / 255.0 blue:rand() % 256 / 255.0 alpha:1.0f];
     
-    view.backgroundColor = [UIColor colorWithRed:rand() % 256 / 255.0 green:rand() % 256 / 255.0 blue:rand() % 256 / 255.0 alpha:1.0f];
-
-    if (index == 0){
+    cell.title = self.titleArray[index];
     
-        view.backgroundColor = [UIColor redColor];
-
-    }
-    else if (index == 1){
-    
-        view.backgroundColor = [UIColor yellowColor];
-
-    }
-    else if (index == 2){
-    
-        view.backgroundColor = [UIColor blueColor];
-
-    }
-    else if (index == 3){
-    
-        view.backgroundColor = [UIColor cyanColor];
-
-    }
-    
-    return view;
+    return cell;
 }
-
 
 -(NSInteger)numberOfItemsInSlideView:(HSTabSlideView *)slideView
 {
-    return 4;
+    return self.titleArray.count;
 }
 
 
