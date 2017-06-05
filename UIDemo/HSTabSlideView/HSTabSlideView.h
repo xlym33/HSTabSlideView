@@ -73,8 +73,6 @@ typedef void(^ItemClickBlock)(NSInteger);
 
 @end
 
-
-
 @class HSTabSlideView;
 
 @protocol HSTabSlideViewDelegate <NSObject>
@@ -105,7 +103,7 @@ typedef void(^ItemClickBlock)(NSInteger);
 
 @property (nonatomic, assign) id<HSTabSlideViewDelegate> delegate;
 
-/** 是否循环播放，默认YES */
+/** 是否循环播放，默认YES，当item的个数为1时不循环 */
 @property (nonatomic, assign) BOOL isCycle;
 
 /** 文字之间的间隔 */
@@ -117,6 +115,7 @@ typedef void(^ItemClickBlock)(NSInteger);
 /** 每一页的最大的显示个数 */
 @property (nonatomic, assign) NSInteger maxCount;
 
+/** 初始化，加上style */
 -(instancetype)initWithFrame:(CGRect)frame slideStyle:(HSSlideStyle)slideStyle;
 
 - (NSInteger)getCurrentIndex;
@@ -125,6 +124,6 @@ typedef void(^ItemClickBlock)(NSInteger);
 
 - (UIView *)getCurrentView;
 
--(void)reloadData;
+- (void)reloadData;
 
 @end

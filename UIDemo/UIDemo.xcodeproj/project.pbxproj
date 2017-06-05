@@ -39,7 +39,6 @@
 /* Begin PBXFileReference section */
 		8B07573F1EDFC0F700432DD3 /* HSTabSlideView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HSTabSlideView.h; sourceTree = "<group>"; };
 		8B0757401EDFC0F700432DD3 /* HSTabSlideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HSTabSlideView.m; sourceTree = "<group>"; };
-		8B0757421EDFC11C00432DD3 /* HSTabSlideConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HSTabSlideConfig.h; sourceTree = "<group>"; };
 		8B33B4C91CCB9BD600062F7A /* UIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B33B4CD1CCB9BD600062F7A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8B33B4CF1CCB9BD600062F7A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -90,7 +89,6 @@
 			children = (
 				8B07573F1EDFC0F700432DD3 /* HSTabSlideView.h */,
 				8B0757401EDFC0F700432DD3 /* HSTabSlideView.m */,
-				8B0757421EDFC11C00432DD3 /* HSTabSlideConfig.h */,
 			);
 			path = HSTabSlideView;
 			sourceTree = "<group>";
